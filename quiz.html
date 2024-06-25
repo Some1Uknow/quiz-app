@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">Quiz</h1>
+        <div id="quizContainer">
+            <!-- Questions will be loaded here -->
+        </div>
+        <button class="btn btn-primary mt-4" onclick="submitQuiz()">Submit Quiz</button>
+        <div id="resultsContainer" class="mt-4"></div>
+    </div>
+
+    <script>
+        let questionsData = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('QUIZ_WEB_APP_URL')
+                .then(response => response.json())
+                .then(data => {
+                    questionsData = data;
+                    const quizContainer = document.getElementById('quizContainer');
+                    data.forEach((question, index) => {
+                        const questionDiv = document.createElement('div');
+                        questionDiv.className = 'form-group';
+                        questionDiv.innerHTML = `
+                            <label>${index + 1}. ${question.question}</label>
+                            ${question.options.map((option, i) => `
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="question${index}" value="${option}">
+                                    <label class="form-check-label">${option}</label>
+                                </div>
+                            `).join('')}
+                        `;
+                        quizContainer.appendChild(questionDiv);
+                    });
+                });
+        });
+
+        function submitQuiz() {
+            const resultsContainer = document.getElementById('resultsContainer');
+            resultsContainer.innerHTML = '';
+            const answers = [];
+
+            questionsData.forEach((question, index) => {
+                const selectedOption = document.querySelector(`input[name="question${index}"]:checked`);
+                answers.push({
+                    question: question.question,
+                    selectedAnswer: selectedOption ? selectedOption.value : null,
+                    correctAnswer: question.correctAnswer
+                });
+            });
+
+            fetch('https://script.google.com/macros/s/AKfycbyVUENO48c6W6wqaPLc2tFSQdCBk-VvyW1Ud-dxqos33Uzt33fV6bgInjJcWdNSlmU01A/exec', {
+                method: 'POST',
+                body: JSON.stringify(answers)
+            })
+            .then(response => response.json())
+            .then(result => {
+                resultsContainer.innerHTML = `<h3>Your Score: ${result.score}/${questionsData.length}</h3>`;
+                result.details.forEach(detail => {
+                    const detailDiv = document.createElement('div');
+                    detailDiv.innerHTML = `
+                        <strong>${detail.question}</strong><br>
+                        Your Answer: ${detail.selectedAnswer || 'No answer'}<br>
+                        Correct Answer: ${detail.correctAnswer}
+                    `;
+                    resultsContainer.appendChild(detailDiv);
+                });
+            });
+        }
+    </script>
+</body>
+</html>

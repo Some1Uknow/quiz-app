@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Topic Entry Form</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="mt-5">Enter Quiz Topics</h1>
+      <form id="topicForm">
+        <div id="topicsContainer">
+          <div class="form-group row">
+            <div class="col-md-3">
+              <label for="topic">Topic</label>
+              <select class="form-control" name="topic" required>
+                <option value="History">History</option>
+                <option value="Math">Math</option>
+                <option value="Science">Science</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label for="difficulty">Difficulty</label>
+              <select class="form-control" name="difficulty" required>
+                <option value="Basic">Basic</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label for="numQuestions">Number of Questions</label>
+              <input
+                type="number"
+                class="form-control"
+                name="numQuestions"
+                min="1"
+                required
+              />
+            </div>
+            <div class="col-md-2">
+              <label for="duration">Total Duration (minutes)</label>
+              <input
+                type="number"
+                class="form-control"
+                name="duration"
+                min="1"
+                required
+              />
+            </div>
+            <div class="col-md-2">
+              <button
+                type="button"
+                class="btn btn-primary mt-4"
+                onclick="addTopic()"
+              >
+                Add Topic
+              </button>
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-success">Submit</button>
+      </form>
+    </div>
+
+    <script>
+      function addTopic() {
+        const topicsContainer = document.getElementById("topicsContainer");
+        const newTopic = topicsContainer.firstElementChild.cloneNode(true);
+        topicsContainer.appendChild(newTopic);
+      }
+
+      document
+        .getElementById("topicForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const formData = new FormData(this);
+          const entries = [...formData.entries()];
+          const data = [];
+          for (let i = 0; i < entries.length; i += 4) {
+            data.push({
+              topic: entries[i][1],
+              difficulty: entries[i + 1][1],
+              numQuestions: entries[i + 2][1],
+              duration: entries[i + 3][1],
+            });
+          }
+          fetch(
+            "https://script.google.com/macros/s/AKfycbyBkGrNjVMLo75EhKHLpUYTDV5L4yDoJBsxRLUvkKAENvyzJUe5MVJYR1Ey0y0ilDm6/exec",
+            {
+              method: "POST",
+              body: JSON.stringify(data),
+            }
+          ).then((response) => {
+            if (response.ok) {
+              alert("Topics submitted successfully!");
+              location.reload();
+            } else {
+              alert("Failed to submit topics");
+            }
+          });
+        });
+    </script>
+  </body>
+</html>
